@@ -26,27 +26,35 @@ struct lruEnt {
     int val;
     struct lruEnt *pre;
     struct lruEnt *nxt;
-} *lruHead;
+} *lruHead = NULL, *lruTail = NULL, *table;
+
+int cap;
+int curSiz;
 
 void lruCacheInit(int capacity) {
-    int i;
-    lruHead = calloc(capacity, sizeof(struct lruEnt));
-    for (i=1; i<capacity; i++)
-        lruHead[i].pre = &lruHead[i-1];
-    for (i=0; i<capacity-1; i++)
-        lruHead[i].nxt = &lruHead[i+1];
-    lruHead[0].pre = NULL;
-    lruHead[capacity-1].nxt = NULL;
+    cap = capacity;
+    curSiz = 0;
+    table = calloc(10240, sizeof(struct lruEnt));
 }
 
 void lruCacheFree() {
-    free(lruHead);
+    free(table);
+}
+
+void assEnt(struct lruEnt *ent, int key, int val) {
+    ent->key = key;
+    ent->val = val;
 }
 
 void mvEntAhead(struct lruEnt *ent) {
     if (ent == lruHead) return;
+    if (cap == 1) {
+        lruHead = ent;
+        return;
+    }
     /* move out first */
-    ent->pre->nxt = ent->nxt;
+    if (ent->pre)
+        ent->pre->nxt = ent->nxt;
     if (ent->nxt)
         ent->nxt->pre = ent->pre;
     /* put ahead */
@@ -56,38 +64,48 @@ void mvEntAhead(struct lruEnt *ent) {
     lruHead = ent;
 }
 
+void rmTailEnt() {
+    lruTail->val = 0;
+    lruTail = lruTail->pre;
+    lruTail->nxt = NULL;
+}
+
 int lruCacheGet(int key) {
     struct lruEnt *ent = lruHead;
-    while(ent->key) {
-        if (ent->key == key) {
-            mvEntAhead(ent);
-            return ent->val;
-        }
-        if (ent->nxt) ent = ent->nxt;
-        else break;
-    }
-    
-    printf("lruCacheGet(%d) return -1\n", key);
+    if (table[key].val) return table[key].val;
     return -1;
 }
 
 void lruCacheSet(int key, int value) {
-    struct lruEnt *ent = lruHead;
-    while(ent->key) {
-        if (ent->key == key) {
-            ent->val = value;
-            mvEntAhead(ent);
-            return;
-        }
-        if (ent->nxt) ent = ent->nxt;
-        else break;
+    struct lruEnt *ent;
+    if (!lruHead) {             // first item
+        table[key].val = value;
+        lruHead = &table[key];
+        lruTail = &table[key];
+        curSiz = 1;
     }
-    if (!ent->key || !ent->nxt) {
-        ent->key = key;
-        ent->val = value;
-        mvEntAhead(ent); 
+    printf("set table[%d].val = %d\n", key, table[key].val);
+    if (!table[key].val) {          // not found
+        if (curSiz < cap) {         // allocate empty
+            ent = &table[key];
+            assEnt(ent, key, value);
+            mvEntAhead(ent);
+            curSiz++;
+        } else {                    // remove existed one
+            ent = &table[key];
+            assEnt(ent, key, value);
+            if (curSiz > 1) rmTailEnt();
+            mvEntAhead(ent);
+        }
+    } else {                        // found
+        ent = &table[key];
+        assEnt(ent, key, value);
+        if (curSiz > 1 && ent == lruTail)
+            lruTail = ent->pre;
+        mvEntAhead(ent);
     }
 }
+
 
 /*
  * Solution context end 
@@ -113,16 +131,16 @@ int main(void) {
     printf("init ok\n");
     lruCacheSet(2, 1);
     lruCacheList("after set (2, 1)");
-    lruCacheSet(3, 2);
-    lruCacheList("after set (3, 2)");
-    lruCacheGet(3);
+    lruCacheSet(2, 2);
+    lruCacheList("after set (2, 2)");
     lruCacheGet(2);
     lruCacheList("after get (2)");
-    lruCacheSet(4, 3);
-    lruCacheList("after set (4, 3)");
+    lruCacheSet(1, 1);
+    lruCacheList("after set (1, 1)");
+    lruCacheSet(4, 1);
+    lruCacheList("after set (4, 1)");
     lruCacheGet(2);
-    lruCacheGet(3);
-    lruCacheGet(4);
+    lruCacheList("after get (2)");
 
     return 0;
 }
