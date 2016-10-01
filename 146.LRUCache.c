@@ -16,78 +16,76 @@ typedef int bool;
 /*
  * Solution context start
  */
+
 #ifndef DEBUG
 #define printf()
 #endif
 
-int cap;
-int *lruKtab;
-int *lruVtab;
-int *lruTtab;
+struct lruEnt {
+    int key;
+    int val;
+    struct lruEnt *pre;
+    struct lruEnt *nxt;
+} *lruHead;
 
 void lruCacheInit(int capacity) {
-    cap = capacity;
-    lruKtab = calloc(cap, 4);
-    lruVtab = calloc(cap, 4);
-    lruTtab = calloc(cap, 4);
+    int i;
+    lruHead = calloc(capacity, sizeof(struct lruEnt));
+    for (i=1; i<capacity; i++)
+        lruHead[i].pre = &lruHead[i-1];
+    for (i=0; i<capacity-1; i++)
+        lruHead[i].nxt = &lruHead[i+1];
+    lruHead[0].pre = NULL;
+    lruHead[capacity-1].nxt = NULL;
 }
 
 void lruCacheFree() {
-    free(lruKtab);
-    free(lruVtab);
-    free(lruTtab);
+    free(lruHead);
+}
+
+void mvEntAhead(struct lruEnt *ent) {
+    if (ent == lruHead) return;
+    /* move out first */
+    ent->pre->nxt = ent->nxt;
+    if (ent->nxt)
+        ent->nxt->pre = ent->pre;
+    /* put ahead */
+    lruHead->pre = ent;
+    ent->nxt = lruHead;
+    ent->pre = NULL;
+    lruHead = ent;
 }
 
 int lruCacheGet(int key) {
-    int i=0, j=-1;
-    for (;i<cap;i++) {
-        if (lruTtab[i]) {
-            if (lruKtab[i] == key) {
-                j = lruVtab[i];
-                lruTtab[i] = 1;
-            }
-            else lruTtab[i]++;
+    struct lruEnt *ent = lruHead;
+    while(ent->key) {
+        if (ent->key == key) {
+            mvEntAhead(ent);
+            return ent->val;
         }
+        if (ent->nxt) ent = ent->nxt;
+        else break;
     }
-    printf("lruCacheGet(%d) return %d\n", key, j);
-    return j;
+    
+    printf("lruCacheGet(%d) return -1\n", key);
+    return -1;
 }
 
 void lruCacheSet(int key, int value) {
-    int i, empty = -1, found = 0, maxt = 0, maxti = -1;
-    printf("start to set (%d,%d)\n", key, value);
-    for (i=0; i<cap; i++) {
-        if (!lruTtab[i]) {
-            printf("empty Ttab[%d]=%d, maxti=%d\n", i, lruTtab[i], maxti);
-            if (empty == -1) empty = i;
+    struct lruEnt *ent = lruHead;
+    while(ent->key) {
+        if (ent->key == key) {
+            ent->val = value;
+            mvEntAhead(ent);
+            return;
         }
-        else if (lruKtab[i] == key) {
-            printf("key found\n");
-            lruVtab[i] = value;
-            lruTtab[i] = 1;
-            found = 1;
-        }
-        else {
-            if (lruTtab[i] > maxt) {
-                maxt = lruTtab[i];
-                maxti = i;
-            }
-            printf("Ttab[%d]=%d, maxti=%d\n", i, lruTtab[i], maxti);
-            lruTtab[i]++;
-        }
-
+        if (ent->nxt) ent = ent->nxt;
+        else break;
     }
-    printf("found %d empty %d maxti %d\n", found, empty, maxti);
-    if (!found && empty != -1) {
-        lruKtab[empty] = key;
-        lruVtab[empty] = value;
-        lruTtab[empty] = 1;
-        found = 1;
-    }
-    if (!found && maxti > -1) {
-        lruKtab[maxti] = key;
-        lruVtab[maxti] = value;
-        lruTtab[maxti] = 1;
+    if (!ent->key || !ent->nxt) {
+        ent->key = key;
+        ent->val = value;
+        mvEntAhead(ent); 
     }
 }
 
@@ -98,26 +96,33 @@ void lruCacheSet(int key, int value) {
 
 #ifdef DEBUG
 void lruCacheList(char *s) {
-    int i=0, j=-1;
-    printf("%s\n     Key    Value     Time cap:%d\n", s, cap);
-    for (;i<cap;i++) {
-        printf("%8d %8d %8d\n", lruKtab[i], lruVtab[i], lruTtab[i]);
+    struct lruEnt *ent = lruHead;
+    printf("%s:\n", s);
+    while(true) {
+        printf("(%d, %d) nxt %p ", ent->key, ent->val, ent->nxt); 
+        if (ent->nxt) ent = ent->nxt;
+        else break;
     }
+    printf("\n");
 }
 
 int main(void) {
     printf("LeetCode debug version for %s\n", __FILE__);
 
     lruCacheInit(2);
+    printf("init ok\n");
     lruCacheSet(2, 1);
-    lruCacheSet(2, 2);
-    lruCacheList("after set (2, 1) (2, 2)\n");
+    lruCacheList("after set (2, 1)");
+    lruCacheSet(3, 2);
+    lruCacheList("after set (3, 2)");
+    lruCacheGet(3);
     lruCacheGet(2);
-    lruCacheList("after get (2)\n");
-    lruCacheSet(1, 1);
-    lruCacheSet(4, 1);
-    lruCacheList("after set (1, 1) (4,1)\n");
+    lruCacheList("after get (2)");
+    lruCacheSet(4, 3);
+    lruCacheList("after set (4, 3)");
     lruCacheGet(2);
+    lruCacheGet(3);
+    lruCacheGet(4);
 
     return 0;
 }
