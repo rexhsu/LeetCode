@@ -5,13 +5,12 @@ class Solution(object):
         :rtype: bool
         """
         lst = []
-        left = ['(', '[', '{']
-        right = [')', ']', '}']
+        pth = {'(':')', '[':']', '{':'}'}
         for c in s:
-            if c in left:
+            if c in pth:
                 lst.append(c)
-            elif c in right:
-                if lst and lst.pop() == left[right.index(c)]:
+            else:
+                if lst and c == pth[lst.pop()]:
                     continue
                 else:
                     return False
