@@ -11,34 +11,16 @@ class Solution(object):
         :type n: int
         :rtype: ListNode
         """
-        count = 1
-        curNode = head
-        while curNode.next != None:
-            count += 1
-            curNode = curNode.next
-        nth = count - n
-        print "nth:%d" % nth
-        idx = 0
-        preNode = None
-        curNode = head
-        while curNode.next != None:
-            print "idx:%d" % idx
-            if idx == nth:
-                if preNode == None:
-                    return curNode.next
-                else:
-                    print "preNode:%d curNode:%d" % (preNode.val, curNode.val)
-                    preNode.next = curNode.next
-                    return head
-            else:
-                idx += 1
-                preNode = curNode
-                curNode = curNode.next
-        if idx == nth:
-            if preNode != None:
-                preNode.next = None
-                return head
-            else:
-                return None
-        else:
-            return None
+        tNode = ListNode(0)
+        tNode.next = head
+        iNode, jNode, rHead = tNode, tNode, tNode
+        for i in xrange(0, n):
+            ''' Go n steps '''
+            iNode = iNode.next 
+        '''print "iNode:", iNode.val'''
+        ''' Go (all - n) steps '''
+        while iNode.next:
+            iNode = iNode.next
+            jNode = jNode.next
+        jNode.next = jNode.next.next
+        return rHead.next
