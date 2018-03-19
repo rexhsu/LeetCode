@@ -14,22 +14,20 @@ class Solution(object):
         rNode = ListNode(0)
         tNode = rNode
         
-        h1, h2 = l1, l2
-        
-        while h1 and h2:
-            if h1.val < h2.val:
-                curNode = ListNode(h1.val)
+        while l1 and l2:
+            if l1.val < l2.val:
+                curNode = ListNode(l1.val)
                 tNode.next = curNode
                 tNode = curNode
-                h1 = h1.next
+                l1 = l1.next
             else:
-                curNode = ListNode(h2.val)
+                curNode = ListNode(l2.val)
                 tNode.next = curNode
                 tNode = curNode
-                h2 = h2.next
-        if h1:
-            tNode.next = h1
-        if h2:
-            tNode.next = h2
+                l2 = l2.next
+        if l1:
+            tNode.next = l1
+        if l2:
+            tNode.next = l2
             
         return rNode.next
