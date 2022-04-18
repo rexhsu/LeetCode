@@ -1,6 +1,6 @@
 func findDuplicate(nums []int) int {
-    var slow, fast int = nums[nums[0]], nums[nums[nums[0]]]
-    for slow != fast {
+    slow, fast := nums[0], nums[0]
+    for stop := true; stop ; stop = slow != fast {
         slow = nums[slow]
         fast = nums[nums[fast]]
     }
