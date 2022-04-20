@@ -1,9 +1,9 @@
 class Solution:
     def rangeSum(self, nums: List[int], n: int, left: int, right: int) -> int:
         lt = []
-        for i in range(len(nums)):
+        for i in range(n):
             s = 0
-            for j in range(i,len(nums)):
+            for j in range(i, n):
                 s += nums[j]
                 lt.append(s)
         lt.sort()
