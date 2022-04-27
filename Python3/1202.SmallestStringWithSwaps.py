@@ -10,23 +10,20 @@ class Solution:
             else: 
                 roots[x] = find(roots[x])
                 return roots[x]
-        
-        def union(x, y):
-            #print("union", x, y)
-            rx, ry = find(x), find(y)
+            
+        for p in pairs:
+            rx, ry = find(p[0]), find(p[1])
             if rx != ry: roots[ry] = rx
+                
+        for c in range(siz): groups[find(c)].append(c) # gather indexes with same root
         
-        for p in pairs: union(p[0], p[1])
-
-        for c in range(siz): groups[find(c)].append(c)
-        #print("groups", groups)
-        
-        arr = list(s)
+        arr = [0]*siz # for modify to be new string
         
         for g in groups:
-            chs = [s[i] for i in groups[g]]
-            chs.sort()
+            chs = [s[i] for i in groups[g]] # pick all characters in groups[g]
+            chs.sort() # alphabet sorting for same root
             for i, p in enumerate(groups[g]):
                 arr[p] = chs[i]
         
         return ''.join(arr)
+            
