@@ -3,13 +3,13 @@ class Solution:
         siz = len(s)
         if siz == 1: return s
         groups = collections.defaultdict(list)
-        roots = list(range(siz))
+        roots = [-1]*siz
         
         def find(x):
-            while roots[x] != x:
-                roots[x] = roots[roots[x]] # key to solved TLE
-                x = roots[x]
-            return x
+            if roots[x] == -1: return x
+            else: 
+                roots[x] = find(roots[x])
+                return roots[x]
         
         def union(x, y):
             #print("union", x, y)
