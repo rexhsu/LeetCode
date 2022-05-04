@@ -1,12 +1,9 @@
 class Solution {
 public:
-    bool predicate(int element, int k) {
-        return (element < k);
-    }
     int maxOperations(vector<int>& nums, int k) {
         vector<int> fnums(nums.size());
         copy_if(nums.begin(), nums.end(), fnums.begin(), [=](int em) {
-            return predicate(em, k);
+            return (em<k);
         });
         
         // sort
