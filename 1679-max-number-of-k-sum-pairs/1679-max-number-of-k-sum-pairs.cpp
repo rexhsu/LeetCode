@@ -1,20 +1,23 @@
-class Solution:
-    def maxOperations(self, nums: List[int], k: int) -> int:
-        """
-        1 <= nums[i] <= 10^9
-        """
-        arr = [i for i in nums if i < k] # filter larger than k. O(n)
-        arr = sorted(arr) # O(nlogn)
-        #print(arr)
+class Solution {
+public:
+    int maxOperations(vector<int>& nums, int k) {
+        // sort
+        sort(nums.begin(), nums.end());
         
-        sol, i, j = 0, 0, len(arr)-1
-        while i<j: # O(n)
-            if arr[i] + arr[j] > k:
-                j-=1
-            elif arr[i] + arr[j] < k:
-                i+=1
-            else:
-                sol, i, j = sol+1, i+1, j-1
-                
-        return sol
-            
+        int sol = 0;
+        int i = 0;
+        int j = nums.size() - 1;
+        while (i<j) {
+            if (nums[i] + nums[j] > k) {
+                j--;
+            } else if (nums[i] + nums[j] < k) {
+                i++;
+            } else {
+                sol++;
+                i++;
+                j--;
+            }
+        }
+        return sol;
+    }
+};
