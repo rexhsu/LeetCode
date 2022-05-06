@@ -10,4 +10,4 @@ class Solution:
                 else:
                     stack[-1][1] += 1
         
-        return ''.join(c * cnt for c, cnt in stack)
+        return ''.join(c*n for c, n in stack)
